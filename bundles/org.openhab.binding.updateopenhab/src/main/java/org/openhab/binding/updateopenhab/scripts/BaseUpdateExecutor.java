@@ -19,7 +19,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.concurrent.Executors;
+
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.updateopenhab.internal.TargetVersion;
@@ -36,6 +42,9 @@ import org.slf4j.LoggerFactory;
 public abstract class BaseUpdateExecutor {
 
     protected final Logger logger = LoggerFactory.getLogger(BaseUpdateExecutor.class);
+
+    private static final String RELEASE_ARTIFACT_URL = "https://openhab.jfrog.io/artifactory/libs-release-local/org/openhab/distro/openhab/maven-metadata.xml";
+    private static final String MILESTONE_ARTIFACT_URL = "https://openhab.jfrog.io/artifactory/libs-milestone-local/org/openhab/distro/openhab/maven-metadata.xml";
 
     private static final String UPDATE_SCRIPT_FILENAME = "openhab-update";
 
@@ -98,7 +107,7 @@ public abstract class BaseUpdateExecutor {
             Executors.newSingleThreadExecutor().submit(inputStreamEater);
             int exitcode = process.waitFor();
             if (exitcode == 0) {
-                logger.info("OpenHAB was updated to {} ", getNextVersionString());
+                logger.info("OpenHAB was updated to v{} ", getNextVersionString());
             } else {
                 logger.warn("Update of OpenHAB to failed with exit code '{}'", exitcode);
             }
@@ -113,22 +122,35 @@ public abstract class BaseUpdateExecutor {
         return OpenHAB.getConfigFolder().replace("conf", "");
     }
 
-    protected String getNextVersionString() {
-        String version = OpenHAB.getVersion();
-        switch (targetVersion) {
-            case SNAPSHOT:
-                version = version + "-SNAPSHOT";
-                break;
-            case MILESTONE:
-                // increment milestone number
-                break;
-            case STABLE:
-                // increment version number
-                break;
-        }
-        if (targetVersion != TargetVersion.STABLE) {
-            version = version + "-" + targetVersion.toString();
+    private String getLatestVersionFrom(String url) {
+        String version = "";
+        XMLStreamReader reader;
+        try {
+            reader = XMLInputFactory.newInstance().createXMLStreamReader(new URL(url).openStream());
+            while (reader.hasNext()) {
+                if (reader.next() == XMLStreamConstants.START_ELEMENT) {
+                    if ("latest".equals(reader.getLocalName())) {
+                        version = reader.getElementText();
+                        break;
+                    }
+                }
+            }
+            reader.close();
+        } catch (IOException | XMLStreamException e) {
         }
         return version;
+    }
+
+    protected String getNextVersionString() {
+        switch (targetVersion) {
+            case SNAPSHOT:
+                String[] version = OpenHAB.getVersion().split("-");
+                return version[0] + "-SNAPSHOT";
+            case MILESTONE:
+                return getLatestVersionFrom(MILESTONE_ARTIFACT_URL);
+            case STABLE:
+                return getLatestVersionFrom(RELEASE_ARTIFACT_URL);
+        }
+        return "";
     }
 }
