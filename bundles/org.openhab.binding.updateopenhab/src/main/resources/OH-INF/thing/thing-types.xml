@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="updateopenhab"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+	<!-- Sample Thing Type -->
+	<thing-type id="sample">
+		<!-- Comment this in for Things which need a Bridge to function. <supported-bridge-type-refs> <bridge-type-ref id="updateOpenHabBridge" 
+			/> </supported-bridge-type-refs> -->
+
+		<label>UpdateOpenHab Binding Thing</label>
+		<description>Thing to Update OpenHAB</description>
+
+		<channels>
+			<channel id="update" typeId="update" />
+		</channels>
+
+		<config-description>
+			<parameter name="targetVersion" type="text" required="false">
+				<default>STABLE</default>
+				<label>Target Update Version</label>
+				<description>Which version OpenHab shall be updated to</description>
+				<options>
+					<option value="STABLE">stable</option>
+					<option value="MILESTONE">milestone</option>
+					<option value="SNAPSHOT">snapshot</option>
+				</options>
+			</parameter>
+		</config-description>
+	</thing-type>
+
+	<channel-type id="updateCommand">
+		<item-type>Switch</item-type>
+		<label>OpenHAB Update Command Switch</label>
+		<description>Set the switch to ON to update OpenHab</description>
+	</channel-type>
+</thing:thing-descriptions>

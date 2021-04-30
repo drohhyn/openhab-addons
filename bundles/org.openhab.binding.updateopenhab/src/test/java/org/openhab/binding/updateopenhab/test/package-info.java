@@ -1,0 +1,1 @@
+package org.openhab.binding.updateopenhab.test;
