@@ -70,11 +70,7 @@ public class OpenThermGatewayHandler extends BaseThingHandler implements OpenThe
     @Override
     public void initialize() {
         logger.debug("Initializing OpenTherm Gateway handler for uid '{}'", getThing().getUID());
-
-        updateStatus(ThingStatus.UNKNOWN, ThingStatusDetail.NONE, "Initializing");
-
         config = getConfigAs(OpenThermGatewayConfiguration.class);
-
         connect();
     }
 
@@ -126,8 +122,6 @@ public class OpenThermGatewayHandler extends BaseThingHandler implements OpenThe
                     updateState(OpenThermGatewayBindingConstants.CHANNEL_OVERRIDE_CENTRAL_HEATING2_ENABLED,
                             OnOffType.from(!gatewayCommand.getMessage().equals("0.0")));
                 }
-            } else {
-                connect();
             }
         }
     }
@@ -151,7 +145,7 @@ public class OpenThermGatewayHandler extends BaseThingHandler implements OpenThe
 
         connecting = false;
 
-        updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.NONE, "Disconnected");
+        updateStatus(ThingStatus.OFFLINE);
 
         // retry connection if disconnect is not explicitly requested
         if (!explicitDisconnect && conf != null && conf.connectionRetryInterval > 0) {
@@ -208,13 +202,13 @@ public class OpenThermGatewayHandler extends BaseThingHandler implements OpenThe
     @Override
     public void handleRemoval() {
         logger.debug("Removing OpenTherm Gateway handler");
-        disconnect();
+        disconnect(true);
         super.handleRemoval();
     }
 
     @Override
     public void dispose() {
-        disconnect();
+        disconnect(true);
 
         ScheduledFuture<?> localReconnectTask = reconnectTask;
         if (localReconnectTask != null) {
@@ -229,19 +223,17 @@ public class OpenThermGatewayHandler extends BaseThingHandler implements OpenThe
         @Nullable
         OpenThermGatewayConfiguration conf = config;
 
-        explicitDisconnect = false;
-
         if (connecting) {
             logger.debug("OpenTherm Gateway connector is already connecting ...");
             return;
         }
 
-        disconnect();
+        disconnect(false);
 
         if (conf != null) {
             logger.debug("Starting OpenTherm Gateway connector");
 
-            connector = new OpenThermGatewaySocketConnector(this, conf.ipaddress, conf.port);
+            connector = new OpenThermGatewaySocketConnector(this, conf.ipaddress, conf.port, scheduler);
 
             Thread thread = new Thread(connector, "OpenTherm Gateway Binding - socket listener thread");
             thread.setDaemon(true);
@@ -251,11 +243,11 @@ public class OpenThermGatewayHandler extends BaseThingHandler implements OpenThe
         }
     }
 
-    private void disconnect() {
+    private void disconnect(boolean explicit) {
         @Nullable
         OpenThermGatewayConnector conn = connector;
 
-        explicitDisconnect = true;
+        explicitDisconnect = explicit;
 
         if (conn != null) {
             if (conn.isConnected()) {
