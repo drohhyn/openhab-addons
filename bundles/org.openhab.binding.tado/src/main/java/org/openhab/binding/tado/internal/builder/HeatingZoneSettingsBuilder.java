@@ -16,7 +16,7 @@ import static org.openhab.binding.tado.internal.api.TadoApiTypeUtils.temperature
 
 import java.io.IOException;
 
-import org.openhab.binding.tado.internal.TadoBindingConstants.FanSpeed;
+import org.openhab.binding.tado.internal.TadoBindingConstants.FanLevel;
 import org.openhab.binding.tado.internal.TadoBindingConstants.HvacMode;
 import org.openhab.binding.tado.internal.api.ApiException;
 import org.openhab.binding.tado.internal.api.model.GenericZoneCapabilities;
@@ -36,12 +36,7 @@ public class HeatingZoneSettingsBuilder extends ZoneSettingsBuilder {
     private static final float DEFAULT_TEMPERATURE_F = 72.0f;
 
     @Override
-    public ZoneSettingsBuilder withSwing(boolean swingOn) {
-        throw new IllegalArgumentException("Heating zones don't support SWING");
-    }
-
-    @Override
-    public ZoneSettingsBuilder withFanSpeed(FanSpeed fanSpeed) {
+    public ZoneSettingsBuilder withFanLevel(FanLevel fanLevel) {
         throw new IllegalArgumentException("Heating zones don't support FAN SPEED");
     }
 

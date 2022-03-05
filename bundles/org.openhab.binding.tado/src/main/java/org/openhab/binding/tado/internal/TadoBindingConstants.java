@@ -63,15 +63,38 @@ public class TadoBindingConstants {
 
     public static final String CHANNEL_ZONE_TARGET_TEMPERATURE = "targetTemperature";
 
-    public static final String CHANNEL_ZONE_SWING = "swing";
+    public static final String CHANNEL_ZONE_FAN_LEVEL = "fanLevel";
 
-    public static final String CHANNEL_ZONE_FAN_SPEED = "fanspeed";
-
-    public static enum FanSpeed {
-        LOW,
-        MIDDLE,
-        HIGH,
+    public static enum FanLevel {
+        LEVEL5,
+        LEVEL1,
+        LEVEL2,
+        LEVEL3,
+        LEVEL4,
         AUTO
+    }
+
+    public static final String CHANNEL_ZONE_HORIZONTAL_SWING = "horizontalSwing";
+
+    public static enum HorizontalSwing {
+        LEFT,
+        MID_LEFT,
+        MID,
+        MID_RIGHT,
+        RIGHT,
+        ON
+    }
+
+    public static final String CHANNEL_ZONE_VERTICAL_SWING = "verticalSwing";
+
+    public static enum VerticalSwing {
+        AUTO,
+        UP,
+        MID_UP,
+        MID,
+        MID_DOWN,
+        DOWN,
+        ON
     }
 
     public static final String CHANNEL_ZONE_OPERATION_MODE = "operationMode";

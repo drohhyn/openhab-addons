@@ -12,10 +12,14 @@
  */
 package org.openhab.binding.tado.internal.api;
 
-import org.openhab.binding.tado.internal.TadoBindingConstants.FanSpeed;
+import org.openhab.binding.tado.internal.TadoBindingConstants.FanLevel;
+import org.openhab.binding.tado.internal.TadoBindingConstants.HorizontalSwing;
 import org.openhab.binding.tado.internal.TadoBindingConstants.HvacMode;
 import org.openhab.binding.tado.internal.TadoBindingConstants.TemperatureUnit;
-import org.openhab.binding.tado.internal.api.model.AcFanSpeed;
+import org.openhab.binding.tado.internal.TadoBindingConstants.VerticalSwing;
+import org.openhab.binding.tado.internal.api.model.ACFanLevel;
+import org.openhab.binding.tado.internal.api.model.ACHorizontalSwing;
+import org.openhab.binding.tado.internal.api.model.ACVerticalSwing;
 import org.openhab.binding.tado.internal.api.model.AcMode;
 import org.openhab.binding.tado.internal.api.model.AcModeCapabilities;
 import org.openhab.binding.tado.internal.api.model.AirConditioningCapabilities;
@@ -125,20 +129,72 @@ public class TadoApiTypeUtils {
         }
     }
 
-    public static AcFanSpeed getAcFanSpeed(FanSpeed fanSpeed) {
-        if (fanSpeed == null) {
+    public static ACFanLevel getFanLevel(FanLevel fanLevel) {
+        if (fanLevel == null) {
             return null;
         }
 
-        switch (fanSpeed) {
+        switch (fanLevel) {
             case AUTO:
-                return AcFanSpeed.AUTO;
-            case HIGH:
-                return AcFanSpeed.HIGH;
-            case MIDDLE:
-                return AcFanSpeed.MIDDLE;
-            case LOW:
-                return AcFanSpeed.LOW;
+                return ACFanLevel.AUTO;
+            case LEVEL5:
+                return ACFanLevel.LEVEL5;
+            case LEVEL1:
+                return ACFanLevel.LEVEL1;
+            case LEVEL2:
+                return ACFanLevel.LEVEL2;
+            case LEVEL3:
+                return ACFanLevel.LEVEL3;
+            case LEVEL4:
+                return ACFanLevel.LEVEL4;
+        }
+
+        return null;
+    }
+
+    public static ACHorizontalSwing getHorizontalSwing(HorizontalSwing horizontalSwing) {
+        if (horizontalSwing == null) {
+            return null;
+        }
+
+        switch (horizontalSwing) {
+            case LEFT:
+                return ACHorizontalSwing.LEFT;
+            case MID_LEFT:
+                return ACHorizontalSwing.MID_LEFT;
+            case MID:
+                return ACHorizontalSwing.MID;
+            case MID_RIGHT:
+                return ACHorizontalSwing.MID_RIGHT;
+            case RIGHT:
+                return ACHorizontalSwing.RIGHT;
+            case ON:
+                return ACHorizontalSwing.ON;
+        }
+
+        return null;
+    }
+
+    public static ACVerticalSwing getVerticalSwing(VerticalSwing verticalSwing) {
+        if (verticalSwing == null) {
+            return null;
+        }
+
+        switch (verticalSwing) {
+            case AUTO:
+                return ACVerticalSwing.AUTO;
+            case UP:
+                return ACVerticalSwing.UP;
+            case MID_UP:
+                return ACVerticalSwing.MID_UP;
+            case MID:
+                return ACVerticalSwing.MID;
+            case MID_DOWN:
+                return ACVerticalSwing.MID_DOWN;
+            case DOWN:
+                return ACVerticalSwing.DOWN;
+            case ON:
+                return ACVerticalSwing.ON;
         }
 
         return null;

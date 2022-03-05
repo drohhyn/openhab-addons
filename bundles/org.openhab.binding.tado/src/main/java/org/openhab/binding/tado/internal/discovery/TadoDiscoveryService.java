@@ -82,9 +82,9 @@ public class TadoDiscoveryService extends AbstractDiscoveryService {
 
     @Override
     protected void startBackgroundDiscovery() {
-        logger.debug("Start Tado background discovery");
+        logger.debug("Start Tado background discovery!!!!");
         if (discoveryFuture == null || discoveryFuture.isCancelled()) {
-            logger.debug("Start Scan");
+            logger.debug("Start Scan!!!!");
             discoveryFuture = scheduler.scheduleWithFixedDelay(this::startScan, 30, REFRESH, TimeUnit.SECONDS);
         }
     }

@@ -22,8 +22,11 @@ import javax.measure.quantity.Temperature;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.tado.internal.TadoBindingConstants;
+import org.openhab.binding.tado.internal.TadoBindingConstants.FanLevel;
+import org.openhab.binding.tado.internal.TadoBindingConstants.HorizontalSwing;
 import org.openhab.binding.tado.internal.TadoBindingConstants.OperationMode;
 import org.openhab.binding.tado.internal.TadoBindingConstants.TemperatureUnit;
+import org.openhab.binding.tado.internal.TadoBindingConstants.VerticalSwing;
 import org.openhab.binding.tado.internal.TadoBindingConstants.ZoneType;
 import org.openhab.binding.tado.internal.TadoHvacChange;
 import org.openhab.binding.tado.internal.adapter.TadoZoneStateAdapter;
@@ -37,7 +40,6 @@ import org.openhab.binding.tado.internal.api.model.Zone;
 import org.openhab.binding.tado.internal.api.model.ZoneState;
 import org.openhab.binding.tado.internal.config.TadoZoneConfig;
 import org.openhab.core.library.types.DecimalType;
-import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.QuantityType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.library.unit.ImperialUnits;
@@ -106,7 +108,8 @@ public class TadoZoneHandler extends BaseHomeThingHandler {
     }
 
     public Overlay setOverlay(Overlay overlay) throws IOException, ApiException {
-        logger.debug("Setting overlay of home {} and zone {}", getHomeId(), getZoneId());
+        logger.debug("Setting overlay of home {} and zone {} with overlay: {}", getHomeId(), getZoneId(),
+                overlay.toString());
         return getApi().updateZoneOverlay(getHomeId(), getZoneId(), overlay);
     }
 
@@ -141,12 +144,18 @@ public class TadoZoneHandler extends BaseHomeThingHandler {
                 }
 
                 break;
-            case TadoBindingConstants.CHANNEL_ZONE_SWING:
-                pendingHvacChange.withSwing(((OnOffType) command) == OnOffType.ON);
+            case TadoBindingConstants.CHANNEL_ZONE_HORIZONTAL_SWING:
+                String horizontalSwingString = ((StringType) command).toFullString();
+                pendingHvacChange.withHorizontalSwing(HorizontalSwing.valueOf(horizontalSwingString.toUpperCase()));
                 scheduleHvacChange();
                 break;
-            case TadoBindingConstants.CHANNEL_ZONE_FAN_SPEED:
-                pendingHvacChange.withFanSpeed(((StringType) command).toFullString());
+            case TadoBindingConstants.CHANNEL_ZONE_FAN_LEVEL:
+                String fanLevelString = ((StringType) command).toFullString();
+                pendingHvacChange.withFanLevel(FanLevel.valueOf(fanLevelString.toUpperCase()));
+                break;
+            case TadoBindingConstants.CHANNEL_ZONE_VERTICAL_SWING:
+                String verticalSwingString = ((StringType) command).toFullString();
+                pendingHvacChange.withVerticalSwing(VerticalSwing.valueOf(verticalSwingString.toUpperCase()));
                 scheduleHvacChange();
                 break;
             case TadoBindingConstants.CHANNEL_ZONE_OPERATION_MODE:
@@ -206,6 +215,7 @@ public class TadoZoneHandler extends BaseHomeThingHandler {
                 updateProperty(TadoBindingConstants.PROPERTY_ZONE_NAME, zoneDetails.getName());
                 updateProperty(TadoBindingConstants.PROPERTY_ZONE_TYPE, zoneDetails.getType().name());
                 this.capabilities = capabilities;
+                logger.debug("Got capabilities: {}", capabilities.toString());
             } catch (IOException | ApiException e) {
                 updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR,
                         "Could not connect to server due to " + e.getMessage());
@@ -254,8 +264,9 @@ public class TadoZoneHandler extends BaseHomeThingHandler {
 
             updateState(TadoBindingConstants.CHANNEL_ZONE_HVAC_MODE, state.getMode());
             updateState(TadoBindingConstants.CHANNEL_ZONE_TARGET_TEMPERATURE, state.getTargetTemperature());
-            updateState(TadoBindingConstants.CHANNEL_ZONE_FAN_SPEED, state.getFanSpeed());
-            updateState(TadoBindingConstants.CHANNEL_ZONE_SWING, state.getSwing());
+            updateState(TadoBindingConstants.CHANNEL_ZONE_FAN_LEVEL, state.getFanLevel());
+            updateState(TadoBindingConstants.CHANNEL_ZONE_HORIZONTAL_SWING, state.getHorizontalSwing());
+            updateState(TadoBindingConstants.CHANNEL_ZONE_VERTICAL_SWING, state.getVerticalSwing());
 
             updateState(TadoBindingConstants.CHANNEL_ZONE_TIMER_DURATION, state.getRemainingTimerDuration());
 

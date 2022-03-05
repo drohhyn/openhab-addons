@@ -117,25 +117,36 @@ public class TadoZoneStateAdapter {
         }
     }
 
-    public State getFanSpeed() {
+    public State getFanLevel() {
         if (zoneState.getSetting().getType() == TadoSystemType.AIR_CONDITIONING) {
             CoolingZoneSetting setting = (CoolingZoneSetting) zoneState.getSetting();
-            return setting.getFanSpeed() != null ? StringType.valueOf(setting.getFanSpeed().getValue())
+            return setting.getFanLevel() != null ? StringType.valueOf(setting.getFanLevel().getValue())
                     : UnDefType.NULL;
         } else {
             return UnDefType.UNDEF;
         }
     }
 
-    public State getSwing() {
+    public State getHorizontalSwing() {
         if (zoneState.getSetting().getType() == TadoSystemType.AIR_CONDITIONING) {
             CoolingZoneSetting setting = (CoolingZoneSetting) zoneState.getSetting();
-            if (setting.getSwing() == null) {
+            if (setting.getHorizontalSwing() == null) {
                 return UnDefType.NULL;
-            } else if (setting.getSwing() == Power.ON) {
-                return OnOffType.ON;
             } else {
-                return OnOffType.OFF;
+                return StringType.valueOf(setting.getHorizontalSwing().getValue());
+            }
+        } else {
+            return UnDefType.UNDEF;
+        }
+    }
+
+    public State getVerticalSwing() {
+        if (zoneState.getSetting().getType() == TadoSystemType.AIR_CONDITIONING) {
+            CoolingZoneSetting setting = (CoolingZoneSetting) zoneState.getSetting();
+            if (setting.getVerticalSwing() == null) {
+                return UnDefType.NULL;
+            } else {
+                return StringType.valueOf(setting.getVerticalSwing().getValue());
             }
         } else {
             return UnDefType.UNDEF;
