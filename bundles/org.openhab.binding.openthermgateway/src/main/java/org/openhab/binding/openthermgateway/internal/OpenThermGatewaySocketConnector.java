@@ -75,13 +75,13 @@ public class OpenThermGatewaySocketConnector implements OpenThermGatewayConnecto
     public Boolean call() throws Exception {
         thread = Thread.currentThread();
         try (Socket socket = new Socket()) {
-            logger.debug("Connecting OpenThermGatewaySocketConnector to {}:{}", this.ipaddress, this.port);
+            // logger.debug("Connecting OpenThermGatewaySocketConnector to {}:{}", this.ipaddress, this.port);
             callback.connectionStateChanged(ConnectionState.CONNECTING);
 
             socket.connect(new InetSocketAddress(ipaddress, port), connectTimeoutMilliseconds);
             socket.setSoTimeout(readTimeoutMilliSeconds);
 
-            logger.debug("OpenThermGatewaySocketConnector connected");
+            // logger.debug("OpenThermGatewaySocketConnector connected");
             callback.connectionStateChanged(ConnectionState.CONNECTED);
 
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -98,28 +98,29 @@ public class OpenThermGatewaySocketConnector implements OpenThermGatewayConnecto
                     String message = reader.readLine();
 
                     if (message != null) {
+                        logger.trace("read: {}", message);
                         handleMessage(message);
                     } else {
-                        logger.debug("Received NULL message from OpenTherm Gateway (EOF)");
+                        // logger.debug("Received NULL message from OpenTherm Gateway (EOF)");
                         break;
                     }
                 }
             } catch (IOException ex) {
-                logger.warn("Error communicating with OpenTherm Gateway: '{}'", ex.getMessage());
+                // logger.warn("Error communicating with OpenTherm Gateway: '{}'", ex.getMessage());
             }
         } catch (IOException ex) {
-            logger.warn("Unable to connect to the OpenTherm Gateway: '{}'", ex.getMessage());
+            // logger.warn("Unable to connect to the OpenTherm Gateway: '{}'", ex.getMessage());
         }
         thread = null;
         writer = null;
-        logger.debug("OpenThermGatewaySocketConnector disconnected");
+        // logger.debug("OpenThermGatewaySocketConnector disconnected");
         callback.connectionStateChanged(ConnectionState.DISCONNECTED);
         return true;
     }
 
     @Override
     public void stop() {
-        logger.debug("Stopping OpenThermGatewaySocketConnector");
+        // logger.debug("Stopping OpenThermGatewaySocketConnector");
 
         Thread thread = this.thread;
         Future<Boolean> future = this.future;
@@ -138,7 +139,7 @@ public class OpenThermGatewaySocketConnector implements OpenThermGatewayConnecto
                 // expected exception due to e.g. IOException on socket close
             } catch (TimeoutException | InterruptedException e) {
                 // unexpected exception
-                logger.warn("stop() exception '{}' => PLEASE REPORT !!", e.getMessage());
+                // logger.warn("stop() exception '{}' => PLEASE REPORT !!", e.getMessage());
             }
         }
 
@@ -149,7 +150,7 @@ public class OpenThermGatewaySocketConnector implements OpenThermGatewayConnecto
 
     @Override
     public void start() {
-        logger.debug("Starting OpenThermGatewaySocketConnector");
+        // logger.debug("Starting OpenThermGatewaySocketConnector");
         ExecutorService executor = this.executor = Executors
                 .newSingleThreadExecutor(new NamedThreadFactory("binding-" + BINDING_ID));
         future = executor.submit(this);
@@ -171,15 +172,16 @@ public class OpenThermGatewaySocketConnector implements OpenThermGatewayConnecto
         String msg = command.toFullString();
 
         if (isConnected() && (wrt != null)) {
-            logger.debug("Sending message: {}", msg);
+            // logger.debug("Sending message: {}", msg);
             wrt.print(msg + "\r\n");
             wrt.flush();
+            logger.trace("write: {}", msg);
             if (wrt.checkError()) {
-                logger.warn("sendCommand() error sending message to OpenTherm Gateway => PLEASE REPORT !!");
+                // logger.warn("sendCommand() error sending message to OpenTherm Gateway => PLEASE REPORT !!");
                 stop();
             }
         } else {
-            logger.debug("Unable to send message: {}. OpenThermGatewaySocketConnector is not connected.", msg);
+            // logger.debug("Unable to send message: {}. OpenThermGatewaySocketConnector is not connected.", msg);
         }
     }
 
@@ -188,7 +190,7 @@ public class OpenThermGatewaySocketConnector implements OpenThermGatewayConnecto
             String code = message.substring(0, 2);
             String value = message.substring(3);
 
-            logger.debug("Received command confirmation: {}: {}", code, value);
+            // logger.debug("Received command confirmation: {}: {}", code, value);
             pendingCommands.remove(code);
             return;
         }
@@ -200,7 +202,7 @@ public class OpenThermGatewaySocketConnector implements OpenThermGatewayConnecto
             long timeoutTime = timeAndCommand.getKey() + COMMAND_RESPONSE_MAX_WAIT_TIME_MILLISECONDS;
 
             if (currentTime > responseTime && currentTime <= timeoutTime) {
-                logger.debug("Resending command: {}", timeAndCommand.getValue());
+                // logger.debug("Resending command: {}", timeAndCommand.getValue());
                 sendCommand(timeAndCommand.getValue());
             } else if (currentTime > timeoutTime) {
                 pendingCommands.remove(timeAndCommand.getValue().getCode());
@@ -210,10 +212,11 @@ public class OpenThermGatewaySocketConnector implements OpenThermGatewayConnecto
         Message msg = Message.parse(message);
 
         if (msg == null) {
-            logger.trace("Received message: {}, (unknown)", message);
+            // logger.trace("Received message: {}, (unknown)", message);
             return;
         }
-        logger.trace("Received message: {}, {} {} {}", message, msg.getID(), msg.getCodeType(), msg.getMessageType());
+        // logger.trace("Received message: {}, {} {} {}", message, msg.getID(), msg.getCodeType(),
+        // msg.getMessageType());
         if (msg.getMessageType() == MessageType.READACK || msg.getMessageType() == MessageType.WRITEDATA
                 || msg.getID() == 0 || msg.getID() == 1) {
             callback.receiveMessage(msg);
