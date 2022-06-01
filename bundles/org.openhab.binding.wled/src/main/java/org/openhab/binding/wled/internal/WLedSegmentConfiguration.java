@@ -10,15 +10,16 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  */
-package org.openhab.binding.helios.internal.ws.soap;
+package org.openhab.binding.wled.internal;
 
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * Helios SOAP Protocol Message
- * 
- * @author Karel Goderis - Initial contribution
+ * The {@link WLedSegmentConfiguration} class contains fields mapping thing configuration parameters.
+ *
+ * @author Matthew Skinner - Initial contribution
  */
-@XmlJavaTypeAdapter(SOAPDataFieldAdapter.class)
-public abstract class SOAPDataField {
+@NonNullByDefault
+public class WLedSegmentConfiguration {
+    public int segmentIndex;
 }
