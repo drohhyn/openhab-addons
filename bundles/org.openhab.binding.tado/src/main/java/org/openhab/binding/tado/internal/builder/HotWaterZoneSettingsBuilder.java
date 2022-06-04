@@ -17,11 +17,8 @@ import static org.openhab.binding.tado.internal.api.TadoApiTypeUtils.temperature
 import java.io.IOException;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.openhab.binding.tado.internal.TadoBindingConstants.FanLevel;
 import org.openhab.binding.tado.internal.TadoBindingConstants.FanSpeed;
-import org.openhab.binding.tado.internal.TadoBindingConstants.HorizontalSwing;
 import org.openhab.binding.tado.internal.TadoBindingConstants.HvacMode;
-import org.openhab.binding.tado.internal.TadoBindingConstants.VerticalSwing;
 import org.openhab.binding.tado.internal.api.ApiException;
 import org.openhab.binding.tado.internal.api.model.GenericZoneCapabilities;
 import org.openhab.binding.tado.internal.api.model.GenericZoneSetting;
@@ -57,17 +54,17 @@ public class HotWaterZoneSettingsBuilder extends ZoneSettingsBuilder {
     }
 
     @Override
-    public ZoneSettingsBuilder withFanLevel(FanLevel fanLevel) {
+    public ZoneSettingsBuilder withFanLevel(String fanLevel) {
         throw new IllegalArgumentException("Hot Water zones don't support FAN LEVEL");
     }
 
     @Override
-    public ZoneSettingsBuilder withHorizontalSwing(HorizontalSwing horizontalSwing) {
+    public ZoneSettingsBuilder withHorizontalSwing(String horizontalSwing) {
         throw new IllegalArgumentException("Hot Water zones don't support HORIZONTAL SWING");
     }
 
     @Override
-    public ZoneSettingsBuilder withVerticalSwing(VerticalSwing verticalSwing) {
+    public ZoneSettingsBuilder withVerticalSwing(String verticalSwing) {
         throw new IllegalArgumentException("Hot Water zones don't support VERTICAL SWING");
     }
 

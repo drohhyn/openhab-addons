@@ -18,17 +18,11 @@ import java.io.IOException;
 import java.util.List;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.openhab.binding.tado.internal.TadoBindingConstants.FanLevel;
 import org.openhab.binding.tado.internal.TadoBindingConstants.FanSpeed;
-import org.openhab.binding.tado.internal.TadoBindingConstants.HorizontalSwing;
 import org.openhab.binding.tado.internal.TadoBindingConstants.HvacMode;
 import org.openhab.binding.tado.internal.TadoBindingConstants.TemperatureUnit;
-import org.openhab.binding.tado.internal.TadoBindingConstants.VerticalSwing;
 import org.openhab.binding.tado.internal.api.ApiException;
 import org.openhab.binding.tado.internal.api.TadoApiTypeUtils;
-import org.openhab.binding.tado.internal.api.model.ACFanLevel;
-import org.openhab.binding.tado.internal.api.model.ACHorizontalSwing;
-import org.openhab.binding.tado.internal.api.model.ACVerticalSwing;
 import org.openhab.binding.tado.internal.api.model.AcFanSpeed;
 import org.openhab.binding.tado.internal.api.model.AcMode;
 import org.openhab.binding.tado.internal.api.model.AcModeCapabilities;
@@ -105,40 +99,36 @@ public class AirConditioningZoneSettingsBuilder extends ZoneSettingsBuilder {
         AcModeCapabilities targetModeCapabilities = TadoApiTypeUtils.getModeCapabilities(targetMode,
                 genericCapabilities);
 
-        FanLevel fanLevel = this.fanLevel;
-        if (fanLevel != null) {
-            ACFanLevel targetFanLevel = getFanLevel(fanLevel);
-            List<ACFanLevel> targetFanLevels = targetModeCapabilities.getFanLevel();
+        String targetFanLevel = this.fanLevel;
+        if (targetFanLevel != null) {
+            List<String> targetFanLevels = targetModeCapabilities.getFanLevel();
             if (targetFanLevels != null && targetFanLevels.contains(targetFanLevel)) {
                 newSetting.setFanLevel(targetFanLevel);
             } else {
-                logger.warn(STATE_VALUE_NOT_SUPPORTED, targetFanLevel.getClass().getSimpleName(), targetFanLevel,
+                logger.warn(STATE_VALUE_NOT_SUPPORTED, "ACFanLevel", targetFanLevel,
                         targetMode.getClass().getSimpleName(), targetMode, targetFanLevels);
             }
         }
 
-        HorizontalSwing horizontalSwing = this.horizontalSwing;
-        if (horizontalSwing != null) {
-            ACHorizontalSwing targetHorizontalSwing = getHorizontalSwing(horizontalSwing);
-            List<ACHorizontalSwing> targetHorizontalSwings = targetModeCapabilities.getHorizontalSwing();
+        String targetHorizontalSwing = this.horizontalSwing;
+        if (targetHorizontalSwing != null) {
+            List<String> targetHorizontalSwings = targetModeCapabilities.getHorizontalSwing();
             if (targetHorizontalSwings != null && targetHorizontalSwings.contains(targetHorizontalSwing)) {
                 newSetting.setHorizontalSwing(targetHorizontalSwing);
             } else {
-                logger.warn(STATE_VALUE_NOT_SUPPORTED, targetHorizontalSwing.getClass().getSimpleName(),
-                        targetHorizontalSwing, targetMode.getClass().getSimpleName(), targetMode,
-                        targetHorizontalSwings);
+                logger.warn(STATE_VALUE_NOT_SUPPORTED, "ACHorizontalSwing", targetHorizontalSwing,
+                        targetMode.getClass().getSimpleName(), targetMode, targetHorizontalSwings);
             }
         }
 
-        VerticalSwing verticalSwing = this.verticalSwing;
-        if (verticalSwing != null) {
-            ACVerticalSwing targetVerticalSwing = getVerticalSwing(verticalSwing);
-            List<ACVerticalSwing> targetVerticalSwings = targetModeCapabilities.getVerticalSwing();
+        String targetVerticalSwing = this.verticalSwing;
+        if (targetVerticalSwing != null) {
+            List<String> targetVerticalSwings = targetModeCapabilities.getVerticalSwing();
             if (targetVerticalSwings != null && targetVerticalSwings.contains(targetVerticalSwing)) {
                 newSetting.setVerticalSwing(targetVerticalSwing);
             } else {
-                logger.warn(STATE_VALUE_NOT_SUPPORTED, targetVerticalSwing.getClass().getSimpleName(),
-                        targetVerticalSwing, targetMode.getClass().getSimpleName(), targetMode, targetVerticalSwings);
+                logger.warn(STATE_VALUE_NOT_SUPPORTED, "ACVerticalSwing", targetVerticalSwing,
+                        targetMode.getClass().getSimpleName(), targetMode, targetVerticalSwings);
             }
         }
 
@@ -172,17 +162,17 @@ public class AirConditioningZoneSettingsBuilder extends ZoneSettingsBuilder {
             newSetting.setSwing(getCurrentOrDefaultSwing(zoneStateProvider, swings));
         }
 
-        List<ACFanLevel> fanLevels = targetCapabilities.getFanLevel();
+        List<String> fanLevels = targetCapabilities.getFanLevel();
         if (fanLevels != null && !fanLevels.isEmpty() && newSetting.getFanLevel() == null) {
             newSetting.setFanLevel(getCurrentOrDefaultFanLevel(zoneStateProvider, fanLevels));
         }
 
-        List<ACHorizontalSwing> horizontalSwings = targetCapabilities.getHorizontalSwing();
+        List<String> horizontalSwings = targetCapabilities.getHorizontalSwing();
         if (horizontalSwings != null && !horizontalSwings.isEmpty() && newSetting.getHorizontalSwing() == null) {
             newSetting.setHorizontalSwing(getCurrentOrDefaultHorizontalSwing(zoneStateProvider, horizontalSwings));
         }
 
-        List<ACVerticalSwing> verticalSwings = targetCapabilities.getVerticalSwing();
+        List<String> verticalSwings = targetCapabilities.getVerticalSwing();
         if (verticalSwings != null && !verticalSwings.isEmpty() && newSetting.getVerticalSwing() == null) {
             newSetting.setVerticalSwing(getCurrentOrDefaultVerticalSwing(zoneStateProvider, verticalSwings));
         }
@@ -229,23 +219,21 @@ public class AirConditioningZoneSettingsBuilder extends ZoneSettingsBuilder {
         return (swing != null) && swings.contains(swing) ? swing : swings.get(0);
     }
 
-    private ACFanLevel getCurrentOrDefaultFanLevel(ZoneStateProvider zoneStateProvider, List<ACFanLevel> fanLevels)
+    private String getCurrentOrDefaultFanLevel(ZoneStateProvider zoneStateProvider, List<String> fanLevels)
             throws IOException, ApiException {
-        ACFanLevel fanLevel = ((CoolingZoneSetting) zoneStateProvider.getZoneState().getSetting()).getFanLevel();
+        String fanLevel = ((CoolingZoneSetting) zoneStateProvider.getZoneState().getSetting()).getFanLevel();
         return (fanLevel != null) && fanLevels.contains(fanLevel) ? fanLevel : fanLevels.get(0);
     }
 
-    private ACVerticalSwing getCurrentOrDefaultVerticalSwing(ZoneStateProvider zoneStateProvider,
-            List<ACVerticalSwing> vertSwings) throws IOException, ApiException {
-        ACVerticalSwing vertSwing = ((CoolingZoneSetting) zoneStateProvider.getZoneState().getSetting())
-                .getVerticalSwing();
+    private String getCurrentOrDefaultVerticalSwing(ZoneStateProvider zoneStateProvider, List<String> vertSwings)
+            throws IOException, ApiException {
+        String vertSwing = ((CoolingZoneSetting) zoneStateProvider.getZoneState().getSetting()).getVerticalSwing();
         return (vertSwing != null) && vertSwings.contains(vertSwing) ? vertSwing : vertSwings.get(0);
     }
 
-    private ACHorizontalSwing getCurrentOrDefaultHorizontalSwing(ZoneStateProvider zoneStateProvider,
-            List<ACHorizontalSwing> horzSwings) throws IOException, ApiException {
-        ACHorizontalSwing horzSwing = ((CoolingZoneSetting) zoneStateProvider.getZoneState().getSetting())
-                .getHorizontalSwing();
+    private String getCurrentOrDefaultHorizontalSwing(ZoneStateProvider zoneStateProvider, List<String> horzSwings)
+            throws IOException, ApiException {
+        String horzSwing = ((CoolingZoneSetting) zoneStateProvider.getZoneState().getSetting()).getHorizontalSwing();
         return (horzSwing != null) && horzSwings.contains(horzSwing) ? horzSwing : horzSwings.get(0);
     }
 

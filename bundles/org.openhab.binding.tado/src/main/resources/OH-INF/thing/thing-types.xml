@@ -209,53 +209,21 @@
 		<item-type>String</item-type>
 		<label>Fan Speed</label>
 		<description>AC fan level (only if supported by AC)</description>
-		<state readOnly="false">
-			<options>
-				<option value="SILENT">SILENT</option>
-				<option value="LEVEL1">LEVEL1</option>
-				<option value="LEVEL2">LEVEL2</option>
-				<option value="LEVEL3">LEVEL3</option>
-				<option value="LEVEL4">LEVEL4</option>
-				<option value="LEVEL5">LEVEL5</option>
-				<option value="AUTO">AUTO</option>
-			</options>
-		</state>
+		<state readOnly="false"></state>
 	</channel-type>
 
 	<channel-type id="horizontalSwing">
 		<item-type>String</item-type>
 		<label>Horizontal Swing</label>
 		<description>State of AC horizontal swing (only if supported by AC)</description>
-		<state readOnly="false">
-			<options>
-				<option value="AUTO">AUTO</option>
-				<option value="LEFT">LEFT</option>
-				<option value="MID_LEFT">MID-LEFT</option>
-				<option value="MID">MID</option>
-				<option value="MID_RIGHT">MID-RIGHT</option>
-				<option value="RIGHT">RIGHT</option>
-				<option value="ON">ON</option>
-				<option value="OFF">OFF</option>
-			</options>
-		</state>
+		<state readOnly="false"></state>
 	</channel-type>
 
 	<channel-type id="verticalSwing">
 		<item-type>String</item-type>
 		<label>Vertical Swing</label>
 		<description>State of AC vertical swing (only if supported by AC)</description>
-		<state readOnly="false">
-			<options>
-				<option value="AUTO">AUTO</option>
-				<option value="UP">UP</option>
-				<option value="MID_UP">UP</option>
-				<option value="MID">MID</option>
-				<option value="MID_DOWN">MID-DOWN</option>
-				<option value="DOWN">DOWN</option>
-				<option value="ON">ON</option>
-				<option value="OFF">OFF</option>
-			</options>
-		</state>
+		<state readOnly="false"></state>
 	</channel-type>
 
 	<channel-type id="operationMode">

@@ -16,12 +16,9 @@ import java.io.IOException;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.binding.tado.internal.TadoBindingConstants.FanLevel;
 import org.openhab.binding.tado.internal.TadoBindingConstants.FanSpeed;
-import org.openhab.binding.tado.internal.TadoBindingConstants.HorizontalSwing;
 import org.openhab.binding.tado.internal.TadoBindingConstants.HvacMode;
 import org.openhab.binding.tado.internal.TadoBindingConstants.TemperatureUnit;
-import org.openhab.binding.tado.internal.TadoBindingConstants.VerticalSwing;
 import org.openhab.binding.tado.internal.TadoBindingConstants.ZoneType;
 import org.openhab.binding.tado.internal.api.ApiException;
 import org.openhab.binding.tado.internal.api.model.GenericZoneCapabilities;
@@ -58,9 +55,9 @@ public abstract class ZoneSettingsBuilder {
     protected @Nullable Boolean swing;
     protected @Nullable Boolean light;
     protected @Nullable FanSpeed fanSpeed;
-    protected @Nullable FanLevel fanLevel;
-    protected @Nullable HorizontalSwing horizontalSwing;
-    protected @Nullable VerticalSwing verticalSwing;
+    protected @Nullable String fanLevel;
+    protected @Nullable String horizontalSwing;
+    protected @Nullable String verticalSwing;
 
     public ZoneSettingsBuilder withMode(HvacMode mode) {
         this.mode = mode;
@@ -83,17 +80,17 @@ public abstract class ZoneSettingsBuilder {
         return this;
     }
 
-    public ZoneSettingsBuilder withFanLevel(FanLevel fanLevel) {
+    public ZoneSettingsBuilder withFanLevel(String fanLevel) {
         this.fanLevel = fanLevel;
         return this;
     }
 
-    public ZoneSettingsBuilder withHorizontalSwing(HorizontalSwing horizontalSwing) {
+    public ZoneSettingsBuilder withHorizontalSwing(String horizontalSwing) {
         this.horizontalSwing = horizontalSwing;
         return this;
     }
 
-    public ZoneSettingsBuilder withVerticalSwing(VerticalSwing verticalSwing) {
+    public ZoneSettingsBuilder withVerticalSwing(String verticalSwing) {
         this.verticalSwing = verticalSwing;
         return this;
     }

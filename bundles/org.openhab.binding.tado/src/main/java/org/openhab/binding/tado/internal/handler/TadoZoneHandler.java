@@ -25,20 +25,14 @@ import javax.measure.quantity.Temperature;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.tado.internal.TadoBindingConstants;
-import org.openhab.binding.tado.internal.TadoBindingConstants.FanLevel;
-import org.openhab.binding.tado.internal.TadoBindingConstants.HorizontalSwing;
 import org.openhab.binding.tado.internal.TadoBindingConstants.OperationMode;
 import org.openhab.binding.tado.internal.TadoBindingConstants.TemperatureUnit;
-import org.openhab.binding.tado.internal.TadoBindingConstants.VerticalSwing;
 import org.openhab.binding.tado.internal.TadoBindingConstants.ZoneType;
 import org.openhab.binding.tado.internal.TadoHvacChange;
 import org.openhab.binding.tado.internal.adapter.TadoZoneStateAdapter;
 import org.openhab.binding.tado.internal.api.ApiException;
 import org.openhab.binding.tado.internal.api.GsonBuilderFactory;
 import org.openhab.binding.tado.internal.api.TadoApiTypeUtils;
-import org.openhab.binding.tado.internal.api.model.ACFanLevel;
-import org.openhab.binding.tado.internal.api.model.ACHorizontalSwing;
-import org.openhab.binding.tado.internal.api.model.ACVerticalSwing;
 import org.openhab.binding.tado.internal.api.model.AcMode;
 import org.openhab.binding.tado.internal.api.model.AcModeCapabilities;
 import org.openhab.binding.tado.internal.api.model.CoolingZoneSetting;
@@ -207,17 +201,17 @@ public class TadoZoneHandler extends BaseHomeThingHandler {
                     break;
                 case TadoBindingConstants.CHANNEL_ZONE_FAN_LEVEL:
                     String fanLevelString = ((StringType) command).toFullString();
-                    pendingHvacChange.withFanLevel(FanLevel.valueOf(fanLevelString.toUpperCase()));
+                    pendingHvacChange.withFanLevel(fanLevelString.toUpperCase());
                     scheduleHvacChange();
                     break;
                 case TadoBindingConstants.CHANNEL_ZONE_HORIZONTAL_SWING:
                     String horizontalSwingString = ((StringType) command).toFullString();
-                    pendingHvacChange.withHorizontalSwing(HorizontalSwing.valueOf(horizontalSwingString.toUpperCase()));
+                    pendingHvacChange.withHorizontalSwing(horizontalSwingString.toUpperCase());
                     scheduleHvacChange();
                     break;
                 case TadoBindingConstants.CHANNEL_ZONE_VERTICAL_SWING:
                     String verticalSwingString = ((StringType) command).toFullString();
-                    pendingHvacChange.withVerticalSwing(VerticalSwing.valueOf(verticalSwingString.toUpperCase()));
+                    pendingHvacChange.withVerticalSwing(verticalSwingString.toUpperCase());
                     scheduleHvacChange();
                     break;
                 case TadoBindingConstants.CHANNEL_ZONE_OPERATION_MODE:
@@ -315,6 +309,8 @@ public class TadoZoneHandler extends BaseHomeThingHandler {
         try {
             ZoneState zoneState = getZoneState();
 
+            updateDynamicStateDescriptions(zoneState);
+
             logger.debug("Updating state of home {} and zone {}", getHomeId(), getZoneId());
 
             TadoZoneStateAdapter state = new TadoZoneStateAdapter(zoneState, getTemperatureUnit());
@@ -340,8 +336,6 @@ public class TadoZoneHandler extends BaseHomeThingHandler {
             updateState(TadoBindingConstants.CHANNEL_ZONE_OVERLAY_EXPIRY, state.getOverlayExpiration());
 
             updateState(TadoBindingConstants.CHANNEL_ZONE_OPEN_WINDOW_DETECTED, state.getOpenWindowDetected());
-
-            updateDynamicStateDescriptions(zoneState);
 
             onSuccessfulOperation();
         } catch (IOException | ApiException e) {
@@ -374,30 +368,30 @@ public class TadoZoneHandler extends BaseHomeThingHandler {
         // update the options list of supported fan levels
         Channel channel = thing.getChannel(TadoBindingConstants.CHANNEL_ZONE_FAN_LEVEL);
         if (channel != null) {
-            List<ACFanLevel> fanLevels = acModeCapabilities.getFanLevel();
+            List<String> fanLevels = acModeCapabilities.getFanLevel();
             if (fanLevels != null) {
                 stateDescriptionProvider.setStateOptions(channel.getUID(),
-                        fanLevels.stream().map(u -> new StateOption(u.name(), u.name())).collect(Collectors.toList()));
+                        fanLevels.stream().map(u -> new StateOption(u, u)).collect(Collectors.toList()));
             }
         }
 
         // update the options list of supported horizontal swing settings
         channel = thing.getChannel(TadoBindingConstants.CHANNEL_ZONE_HORIZONTAL_SWING);
         if (channel != null) {
-            List<ACHorizontalSwing> horizontalSwings = acModeCapabilities.getHorizontalSwing();
+            List<String> horizontalSwings = acModeCapabilities.getHorizontalSwing();
             if (horizontalSwings != null) {
-                stateDescriptionProvider.setStateOptions(channel.getUID(), horizontalSwings.stream()
-                        .map(u -> new StateOption(u.name(), u.name())).collect(Collectors.toList()));
+                stateDescriptionProvider.setStateOptions(channel.getUID(),
+                        horizontalSwings.stream().map(u -> new StateOption(u, u)).collect(Collectors.toList()));
             }
         }
 
         // update the options list of supported vertical swing settings
         channel = thing.getChannel(TadoBindingConstants.CHANNEL_ZONE_VERTICAL_SWING);
         if (channel != null) {
-            List<ACVerticalSwing> verticalSwings = acModeCapabilities.getVerticalSwing();
+            List<String> verticalSwings = acModeCapabilities.getVerticalSwing();
             if (verticalSwings != null) {
-                stateDescriptionProvider.setStateOptions(channel.getUID(), verticalSwings.stream()
-                        .map(u -> new StateOption(u.name(), u.name())).collect(Collectors.toList()));
+                stateDescriptionProvider.setStateOptions(channel.getUID(),
+                        verticalSwings.stream().map(u -> new StateOption(u, u)).collect(Collectors.toList()));
             }
         }
     }

@@ -14,15 +14,9 @@ package org.openhab.binding.tado.internal.api;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.binding.tado.internal.TadoBindingConstants.FanLevel;
 import org.openhab.binding.tado.internal.TadoBindingConstants.FanSpeed;
-import org.openhab.binding.tado.internal.TadoBindingConstants.HorizontalSwing;
 import org.openhab.binding.tado.internal.TadoBindingConstants.HvacMode;
 import org.openhab.binding.tado.internal.TadoBindingConstants.TemperatureUnit;
-import org.openhab.binding.tado.internal.TadoBindingConstants.VerticalSwing;
-import org.openhab.binding.tado.internal.api.model.ACFanLevel;
-import org.openhab.binding.tado.internal.api.model.ACHorizontalSwing;
-import org.openhab.binding.tado.internal.api.model.ACVerticalSwing;
 import org.openhab.binding.tado.internal.api.model.AcFanSpeed;
 import org.openhab.binding.tado.internal.api.model.AcMode;
 import org.openhab.binding.tado.internal.api.model.AcModeCapabilities;
@@ -152,73 +146,6 @@ public class TadoApiTypeUtils {
                 return AcFanSpeed.LOW;
             default:
                 throw new IllegalArgumentException("Unexpected AcFanSpeed " + fanSpeed);
-        }
-    }
-
-    public static ACFanLevel getFanLevel(FanLevel fanLevel) {
-        switch (fanLevel) {
-            case AUTO:
-                return ACFanLevel.AUTO;
-            case LEVEL1:
-                return ACFanLevel.LEVEL1;
-            case LEVEL2:
-                return ACFanLevel.LEVEL2;
-            case LEVEL3:
-                return ACFanLevel.LEVEL3;
-            case LEVEL4:
-                return ACFanLevel.LEVEL4;
-            case LEVEL5:
-                return ACFanLevel.LEVEL5;
-            case SILENT:
-                return ACFanLevel.SILENT;
-            default:
-                throw new IllegalArgumentException("Unexpected FanLevel " + fanLevel);
-        }
-    }
-
-    public static ACHorizontalSwing getHorizontalSwing(HorizontalSwing horizontalSwing) {
-        switch (horizontalSwing) {
-            case LEFT:
-                return ACHorizontalSwing.LEFT;
-            case MID_LEFT:
-                return ACHorizontalSwing.MID_LEFT;
-            case MID:
-                return ACHorizontalSwing.MID;
-            case MID_RIGHT:
-                return ACHorizontalSwing.MID_RIGHT;
-            case RIGHT:
-                return ACHorizontalSwing.RIGHT;
-            case ON:
-                return ACHorizontalSwing.ON;
-            case OFF:
-                return ACHorizontalSwing.OFF;
-            case AUTO:
-                return ACHorizontalSwing.AUTO;
-            default:
-                throw new IllegalArgumentException("Unexpected HorizontalSwing " + horizontalSwing);
-        }
-    }
-
-    public static ACVerticalSwing getVerticalSwing(VerticalSwing verticalSwing) {
-        switch (verticalSwing) {
-            case AUTO:
-                return ACVerticalSwing.AUTO;
-            case UP:
-                return ACVerticalSwing.UP;
-            case MID_UP:
-                return ACVerticalSwing.MID_UP;
-            case MID:
-                return ACVerticalSwing.MID;
-            case MID_DOWN:
-                return ACVerticalSwing.MID_DOWN;
-            case DOWN:
-                return ACVerticalSwing.DOWN;
-            case ON:
-                return ACVerticalSwing.ON;
-            case OFF:
-                return ACVerticalSwing.OFF;
-            default:
-                throw new IllegalArgumentException("Unexpected VerticalSwing " + verticalSwing);
         }
     }
 

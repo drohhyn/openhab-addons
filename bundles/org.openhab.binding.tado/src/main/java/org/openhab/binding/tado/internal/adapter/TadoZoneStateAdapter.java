@@ -20,9 +20,6 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.tado.internal.TadoBindingConstants.HvacMode;
 import org.openhab.binding.tado.internal.TadoBindingConstants.OperationMode;
 import org.openhab.binding.tado.internal.TadoBindingConstants.TemperatureUnit;
-import org.openhab.binding.tado.internal.api.model.ACFanLevel;
-import org.openhab.binding.tado.internal.api.model.ACHorizontalSwing;
-import org.openhab.binding.tado.internal.api.model.ACVerticalSwing;
 import org.openhab.binding.tado.internal.api.model.AcFanSpeed;
 import org.openhab.binding.tado.internal.api.model.AcPowerDataPoint;
 import org.openhab.binding.tado.internal.api.model.ActivityDataPoints;
@@ -144,24 +141,24 @@ public class TadoZoneStateAdapter {
 
     public State getFanLevel() {
         if (zoneState.getSetting().getType() == TadoSystemType.AIR_CONDITIONING) {
-            ACFanLevel result = ((CoolingZoneSetting) zoneState.getSetting()).getFanLevel();
-            return result != null ? StringType.valueOf(result.getValue()) : UnDefType.NULL;
+            String result = ((CoolingZoneSetting) zoneState.getSetting()).getFanLevel();
+            return result != null ? StringType.valueOf(result) : UnDefType.NULL;
         }
         return UnDefType.UNDEF;
     }
 
     public State getHorizontalSwing() {
         if (zoneState.getSetting().getType() == TadoSystemType.AIR_CONDITIONING) {
-            ACHorizontalSwing result = ((CoolingZoneSetting) zoneState.getSetting()).getHorizontalSwing();
-            return result != null ? StringType.valueOf(result.getValue()) : UnDefType.NULL;
+            String result = ((CoolingZoneSetting) zoneState.getSetting()).getHorizontalSwing();
+            return result != null ? StringType.valueOf(result) : UnDefType.NULL;
         }
         return UnDefType.UNDEF;
     }
 
     public State getVerticalSwing() {
         if (zoneState.getSetting().getType() == TadoSystemType.AIR_CONDITIONING) {
-            ACVerticalSwing result = ((CoolingZoneSetting) zoneState.getSetting()).getVerticalSwing();
-            return result != null ? StringType.valueOf(result.getValue()) : UnDefType.NULL;
+            String result = ((CoolingZoneSetting) zoneState.getSetting()).getVerticalSwing();
+            return result != null ? StringType.valueOf(result) : UnDefType.NULL;
         }
         return UnDefType.UNDEF;
     }
