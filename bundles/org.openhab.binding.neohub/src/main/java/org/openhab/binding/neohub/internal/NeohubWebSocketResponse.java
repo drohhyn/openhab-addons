@@ -12,23 +12,15 @@
  */
 package org.openhab.binding.neohub.internal;
 
-import org.eclipse.jdt.annotation.NonNullByDefault;
-
 /**
- * The {@link NeoHubConfiguration} class contains the thing configuration
- * parameters
+ * DTO for web socket communications (responses).
  *
  * @author Andrew Fiddian-Green - Initial contribution
+ *
  */
-@NonNullByDefault
-public class NeoHubConfiguration {
-
-    public static final String HOST_NAME = "hostName";
-
-    public String hostName = "";
-    public int portNumber;
-    public int pollingInterval;
-    public int socketTimeout;
-    public boolean preferLegacyApi;
-    public String apiToken = "";
+public class NeohubWebSocketResponse {
+    public String command_id;
+    public String device_id;
+    public String message_type;
+    public String response;
 }
