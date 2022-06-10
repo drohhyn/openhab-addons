@@ -44,33 +44,49 @@ import com.google.gson.Gson;
 public class NeoHubWebSocket extends NeoHubSocketBase {
 
     private static final int SLEEP_MILLISECONDS = 100;
+    private static final String REQUEST_OUTER = "{\"message_type\":\"hm_get_command_queue\",\"message\":\"%s\"}";
+    private static final String REQUEST_INNER = "{\"token\":\"%s\",\"COMMANDS\":[{\"COMMAND\":\"%s\",\"COMMANDID\":1}]}";
 
     private final Logger logger = LoggerFactory.getLogger(NeoHubWebSocket.class);
-
-    private final WebSocketClient webSocketClient;
-    private @Nullable Session session = null;
-    private String responseJson = "";
-    private boolean responseReceived;
     private final Gson gson = new Gson();
+    private final WebSocketClient webSocketClient;
 
-    public NeoHubWebSocket(NeoHubConfiguration config) {
+    private @Nullable Session session = null;
+    private String responseOuter = "";
+    private boolean responseWaiting;
+
+    /**
+     * DTO to receive and parse the response JSON.
+     *
+     * @author Andrew Fiddian-Green - Initial contribution
+     */
+    private static class Response {
+        @SuppressWarnings("unused")
+        public @Nullable String command_id;
+        @SuppressWarnings("unused")
+        public @Nullable String device_id;
+        public @Nullable String message_type;
+        public @Nullable String response;
+    }
+
+    public NeoHubWebSocket(NeoHubConfiguration config) throws NeoHubException {
         super(config);
 
+        // initialise and start ssl context factory, http client, web socket client
         SslContextFactory.Client sslContextFactory = new SslContextFactory.Client();
         sslContextFactory.setTrustAll(true);
         HttpClient httpClient = new HttpClient(sslContextFactory);
         try {
             httpClient.start();
         } catch (Exception e) {
+            throw new NeoHubException(String.format("Error starting http client: '%s'", e.getMessage()));
         }
         webSocketClient = new WebSocketClient(httpClient);
-
+        webSocketClient.setConnectTimeout(config.socketTimeout * 1000);
         try {
-            webSocketClient.setConnectTimeout(config.socketTimeout * 1000);
             webSocketClient.start();
         } catch (Exception e) {
-            logger.debug("Error starting web socket client: '{}'", e.getMessage());
-            return;
+            throw new NeoHubException(String.format("Error starting web socket client: '%s'", e.getMessage()));
         }
     }
 
@@ -79,7 +95,7 @@ public class NeoHubWebSocket extends NeoHubSocketBase {
      *
      * @throws NeoHubException
      */
-    private void openSession() throws NeoHubException {
+    private void startSession() throws NeoHubException {
         Session session = this.session;
         if (session == null || !session.isOpen()) {
             closeSession();
@@ -87,7 +103,7 @@ public class NeoHubWebSocket extends NeoHubSocketBase {
                 URI uri = new URI(String.format("wss://%s:%d", config.hostName, config.portNumber));
                 webSocketClient.connect(this, uri).get();
             } catch (InterruptedException | ExecutionException | IOException | URISyntaxException e) {
-                throw new NeoHubException(String.format("Error opening session: '%s'", e.getMessage()));
+                throw new NeoHubException(String.format("Error starting session: '%s'", e.getMessage()));
             }
         }
     }
@@ -103,42 +119,82 @@ public class NeoHubWebSocket extends NeoHubSocketBase {
         }
     }
 
+    /**
+     * Helper to escape the quote marks in a JSON string.
+     *
+     * @param json the input JSON string.
+     * @return the escaped JSON version.
+     */
+    private String jsonEscape(String json) {
+        return json.replace("\"", "\\\"");
+    }
+
+    /**
+     * Helper to remove quote escape marks from an escaped JSON string.
+     *
+     * @param escapedJson the escaped input string.
+     * @return the clean JSON version.
+     */
+    private String jsonUnEscape(String escapedJson) {
+        return escapedJson.replace("\\\"", "\"");
+    }
+
+    /**
+     * Helper to replace double quote marks in a JSON string with single quote marks.
+     *
+     * @param json the input string.
+     * @return the modified version.
+     */
+    private String jsonReplaceQuotes(String json) {
+        return json.replace("\"", "'");
+    }
+
     @Override
     public String sendMessage(final String requestJson) throws IOException, NeoHubException {
         // start the session
-        openSession();
+        startSession();
 
+        // session start failed
         Session session = this.session;
         if (session == null) {
             throw new NeoHubException("Session is null.");
         }
 
-        // clear the response
-        responseJson = "";
-        responseReceived = false;
+        // wrap the inner request in an outer request string
+        String requestOuter = String.format(REQUEST_OUTER,
+                jsonEscape(String.format(REQUEST_INNER, config.apiToken, jsonReplaceQuotes(requestJson))));
 
-        // create and send the request
-        NeohubWebSocketRequest requestDto = new NeohubWebSocketRequest();
-        requestDto.setFields(config.apiToken, requestJson);
-        String wrappedRequest = gson.toJson(requestDto);
-        session.getRemote().sendString(wrappedRequest);
+        // initialise the response
+        responseOuter = "";
+        responseWaiting = true;
 
-        // enter a sleep loop to wait for the response
+        // send the request
+        logger.trace("Sending request: {}", requestOuter);
+        session.getRemote().sendString(requestOuter);
+
+        // sleep and loop until we get a response or the socket is closed
         int sleepRemainingMilliseconds = config.socketTimeout * 1000;
-        while (!responseReceived && (sleepRemainingMilliseconds > 0)) {
+        while (responseWaiting && (sleepRemainingMilliseconds > 0)) {
             try {
                 Thread.sleep(SLEEP_MILLISECONDS);
                 sleepRemainingMilliseconds = sleepRemainingMilliseconds - SLEEP_MILLISECONDS;
             } catch (InterruptedException e) {
-                throw new NeoHubException(String.format("Receive message timeout '%s'", e.getMessage()));
+                throw new NeoHubException(String.format("Read timeout '%s'", e.getMessage()));
             }
         }
 
-        NeohubWebSocketResponse wrappedResponse = gson.fromJson(responseJson, NeohubWebSocketResponse.class);
-        return (wrappedResponse != null)
-                && NeoHubBindingConstants.HM_SET_COMMAND_RESPONSE.equals(wrappedResponse.response)
-                        ? wrappedResponse.response
-                        : "";
+        // extract the inner response from the outer response string
+        Response responseDto = gson.fromJson(responseOuter, Response.class);
+        if (responseDto != null && NeoHubBindingConstants.HM_SET_COMMAND_RESPONSE.equals(responseDto.message_type)) {
+            String responseJson = responseDto.response;
+            if (responseJson != null) {
+                responseJson = jsonUnEscape(responseJson);
+                logger.trace("Received response: {}", responseJson);
+                return responseJson;
+            }
+        }
+        logger.debug("Null or invalid response.");
+        return "";
     }
 
     @Override
@@ -157,9 +213,10 @@ public class NeoHubWebSocket extends NeoHubSocketBase {
     }
 
     @OnWebSocketClose
-    public void onClose(int statusCode, String reason) {
+    public void onClose(Session session, int statusCode, String reason) {
         logger.trace("onClose: code:{}, reason:{}", statusCode, reason);
-        session = null;
+        responseWaiting = false;
+        this.session = null;
     }
 
     @OnWebSocketError
@@ -169,9 +226,9 @@ public class NeoHubWebSocket extends NeoHubSocketBase {
     }
 
     @OnWebSocketMessage
-    public void onMessage(String msg) {
-        responseReceived = true;
+    public void onMessage(Session session, String msg) {
         logger.trace("onMessage: msg:{}", msg);
-        responseJson = msg;
+        responseOuter = msg;
+        responseWaiting = false;
     }
 }

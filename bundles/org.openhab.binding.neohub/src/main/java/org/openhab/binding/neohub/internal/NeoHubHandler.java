@@ -142,22 +142,28 @@ public class NeoHubHandler extends BaseBridgeHandler {
             logger.debug("hub '{}' preferLegacyApi={}", getThing().getUID(), config.preferLegacyApi);
         }
 
-        // use web socket or tcp socket based on config port number
+        // create a web or TCP socket based on the port number in the configuration
         NeoHubSocketBase socket;
-        switch (config.portNumber) {
-            case PORT_TCP: {
-                socket = new NeoHubSocket(config);
-                break;
+        try {
+            switch (config.portNumber) {
+                case PORT_TCP: {
+                    socket = new NeoHubSocket(config);
+                    break;
+                }
+                case PORT_WSS: {
+                    socket = new NeoHubWebSocket(config);
+                    break;
+                }
+                default: {
+                    // actually we already checked for invalid port numbers above
+                    return;
+                }
             }
-            case PORT_WSS: {
-                socket = new NeoHubWebSocket(config);
-                break;
-            }
-            default: {
-                // we already logged invalid port numbers above
-                return;
-            }
+        } catch (NeoHubException e) {
+            logger.debug("\"hub '{}' error creating web/tcp socket: '{}'", getThing().getUID(), e.getMessage());
+            return;
         }
+
         this.socket = socket;
         this.config = config;
 
