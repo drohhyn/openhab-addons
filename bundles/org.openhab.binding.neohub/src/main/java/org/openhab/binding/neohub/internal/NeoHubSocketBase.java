@@ -12,6 +12,7 @@
  */
 package org.openhab.binding.neohub.internal;
 
+import java.io.Closeable;
 import java.io.IOException;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -23,18 +24,13 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
  *
  */
 @NonNullByDefault
-public abstract class NeoHubSocketBase {
+public abstract class NeoHubSocketBase implements Closeable {
 
     protected final NeoHubConfiguration config;
 
     public NeoHubSocketBase(NeoHubConfiguration config) {
         this.config = config;
     }
-
-    /**
-     * Clean up
-     */
-    public abstract void dispose();
 
     /**
      * Sends the message over the network to the NeoHub and returns its response

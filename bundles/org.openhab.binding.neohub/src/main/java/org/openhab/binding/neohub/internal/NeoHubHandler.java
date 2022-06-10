@@ -228,6 +228,15 @@ public class NeoHubHandler extends BaseBridgeHandler {
             fast.cancel(true);
             this.fastPollingScheduler = null;
         }
+
+        NeoHubSocketBase socket = this.socket;
+        if (socket != null) {
+            try {
+                socket.close();
+            } catch (IOException e) {
+            }
+            this.socket = null;
+        }
     }
 
     /*

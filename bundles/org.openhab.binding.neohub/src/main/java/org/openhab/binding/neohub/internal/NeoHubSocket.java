@@ -105,7 +105,7 @@ public class NeoHubSocket extends NeoHubSocketBase {
     }
 
     @Override
-    public void dispose() {
+    public void close() {
         // nothing to do
     }
 }

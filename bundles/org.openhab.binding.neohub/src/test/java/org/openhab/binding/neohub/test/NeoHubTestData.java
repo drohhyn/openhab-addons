@@ -372,14 +372,15 @@ public class NeoHubTestData {
         config.hostName = hubIpAddress;
         config.portNumber = NeoHubBindingConstants.PORT_TCP;
         config.socketTimeout = 5;
-        NeoHubSocket socket = new NeoHubSocket(config);
-        String responseJson = "";
         try {
-            responseJson = socket.sendMessage(requestJson);
+            NeoHubSocket socket = new NeoHubSocket(config);
+            String responseJson = socket.sendMessage(requestJson);
+            socket.close();
+            return responseJson;
         } catch (Exception e) {
             assertTrue(false);
         }
-        return responseJson;
+        return "";
     }
 
     /*

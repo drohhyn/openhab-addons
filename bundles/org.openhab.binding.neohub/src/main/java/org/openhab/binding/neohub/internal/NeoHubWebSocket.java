@@ -198,7 +198,7 @@ public class NeoHubWebSocket extends NeoHubSocketBase {
     }
 
     @Override
-    public void dispose() {
+    public void close() {
         closeSession();
         try {
             webSocketClient.stop();
@@ -213,7 +213,7 @@ public class NeoHubWebSocket extends NeoHubSocketBase {
     }
 
     @OnWebSocketClose
-    public void onClose(Session session, int statusCode, String reason) {
+    public void onClose(int statusCode, String reason) {
         logger.trace("onClose: code:{}, reason:{}", statusCode, reason);
         responseWaiting = false;
         this.session = null;
@@ -226,7 +226,7 @@ public class NeoHubWebSocket extends NeoHubSocketBase {
     }
 
     @OnWebSocketMessage
-    public void onMessage(Session session, String msg) {
+    public void onMessage(String msg) {
         logger.trace("onMessage: msg:{}", msg);
         responseOuter = msg;
         responseWaiting = false;
