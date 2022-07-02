@@ -43,6 +43,7 @@ import org.openhab.binding.velux.internal.bridge.common.BridgeCommunicationProto
 import org.openhab.binding.velux.internal.bridge.common.RunProductCommand;
 import org.openhab.binding.velux.internal.bridge.common.RunReboot;
 import org.openhab.binding.velux.internal.bridge.json.JsonVeluxBridge;
+import org.openhab.binding.velux.internal.bridge.slip.FunctionalParameters;
 import org.openhab.binding.velux.internal.bridge.slip.SlipVeluxBridge;
 import org.openhab.binding.velux.internal.config.VeluxBridgeConfiguration;
 import org.openhab.binding.velux.internal.development.Threads;
@@ -541,20 +542,27 @@ public class VeluxBridgeHandler extends ExtendedBaseBridgeHandler implements Vel
                 if (!channelPbi.equals(productPbi)) {
                     continue;
                 }
-                // Handle value inversion
-                boolean isInverted = actuator.isInverted();
-                logger.trace("syncChannelsWithProducts(): isInverted is {}.", isInverted);
-                VeluxProductPosition position = new VeluxProductPosition(product.getDisplayPosition());
+                boolean isInverted;
+                VeluxProductPosition position;
+                if (channelUID.getId().equals(VeluxBindingConstants.CHANNEL_VANE_POSITION)) {
+                    isInverted = false;
+                    position = new VeluxProductPosition(product.getVanePosition());
+                } else {
+                    // Handle value inversion
+                    isInverted = actuator.isInverted();
+                    logger.trace("syncChannelsWithProducts(): isInverted is {}.", isInverted);
+                    position = new VeluxProductPosition(product.getDisplayPosition());
+                }
                 if (position.isValid()) {
                     PercentType positionAsPercent = position.getPositionAsPercentType(isInverted);
                     logger.debug("syncChannelsWithProducts(): updating channel {} to position {}%.", channelUID,
                             positionAsPercent);
                     updateState(channelUID, positionAsPercent);
-                    break;
+                    continue;
                 }
                 logger.trace("syncChannelsWithProducts(): update channel {} to 'UNDEFINED'.", channelUID);
                 updateState(channelUID, UnDefType.UNDEF);
-                break;
+                continue;
             }
         }
         logger.trace("syncChannelsWithProducts(): resetting dirty flag.");
@@ -674,6 +682,7 @@ public class VeluxBridgeHandler extends ExtendedBaseBridgeHandler implements Vel
                         case ACTUATOR_STATE:
                         case ROLLERSHUTTER_POSITION:
                         case WINDOW_POSITION:
+                        case ROLLERSHUTTER_VANE_POSITION:
                             newState = ChannelActuatorPosition.handleRefresh(channelUID, channelId, this);
                             break;
                         case ACTUATOR_LIMIT_MINIMUM:
@@ -694,9 +703,8 @@ public class VeluxBridgeHandler extends ExtendedBaseBridgeHandler implements Vel
                             break;
 
                         default:
-                            logger.trace(
-                                    "handleCommandCommsJob(): cannot handle REFRESH on channel {} as it is of type {}.",
-                                    itemName, channelId);
+                            logger.warn("{} Cannot handle REFRESH on channel {} as it is of type {}.",
+                                    VeluxBindingConstants.LOGGING_CONTACT, itemName, channelId);
                     }
                 } catch (IllegalArgumentException e) {
                     logger.warn("Cannot handle REFRESH on channel {} as it isn't (yet) known to the bridge.", itemName);
@@ -769,6 +777,7 @@ public class VeluxBridgeHandler extends ExtendedBaseBridgeHandler implements Vel
                     case ACTUATOR_STATE:
                     case ROLLERSHUTTER_POSITION:
                     case WINDOW_POSITION:
+                    case ROLLERSHUTTER_VANE_POSITION:
                         newValue = ChannelActuatorPosition.handleCommand(channelUID, channelId, command, this);
                         break;
                     case ACTUATOR_LIMIT_MINIMUM:
@@ -845,8 +854,8 @@ public class VeluxBridgeHandler extends ExtendedBaseBridgeHandler implements Vel
         logger.trace("moveRelative() called on {}", getThing().getUID());
         RunProductCommand bcp = thisBridge.bridgeAPI().runProductCommand();
         if (bcp != null) {
-            bcp.setNodeAndMainParameter(nodeId, new VeluxProductPosition(new PercentType(Math.abs(relativePercent)))
-                    .getAsRelativePosition((relativePercent >= 0)));
+            bcp.setNodeIdAndParameters(nodeId, new VeluxProductPosition(new PercentType(Math.abs(relativePercent)))
+                    .getAsRelativePosition((relativePercent >= 0)), new FunctionalParameters());
             // background execution of moveRelative
             submitCommunicationsJob(() -> {
                 if (thisBridge.bridgeCommunicate(bcp)) {
@@ -893,5 +902,39 @@ public class VeluxBridgeHandler extends ExtendedBaseBridgeHandler implements Vel
      */
     public boolean isDisposing() {
         return disposing;
+    }
+
+    /**
+     * Exported method (called by an OpenHAB Rules Action) to simultaneously set the shade main position and the vane
+     * position.
+     *
+     * @param productBridgeIndex the node index in the bridge
+     * @param mainPercentType the desired main position
+     * @param vanePercentType the desired vane position
+     * @return true if the command could be issued
+     */
+    public Boolean setMainAndVanePosition(ProductBridgeIndex productBridgeIndex, PercentType mainPercentType,
+            PercentType vanePercentType) {
+        logger.trace("setMainAndVanePosition() called on {}", getThing().getUID());
+        RunProductCommand bcp = thisBridge.bridgeAPI().runProductCommand();
+        if (bcp != null) {
+            VeluxProduct product = existingProducts().get(productBridgeIndex).clone();
+            FunctionalParameters functionalParameters = null;
+            if (product.supportsVanePosition()) {
+                int vanePosition = new VeluxProductPosition(vanePercentType).getPositionAsVeluxType();
+                product.setVanePosition(vanePosition);
+                functionalParameters = product.getFunctionalParameters();
+            }
+            int mainPosition = new VeluxProductPosition(mainPercentType).getPositionAsVeluxType();
+            bcp.setNodeIdAndParameters(productBridgeIndex.toInt(), mainPosition, functionalParameters);
+            submitCommunicationsJob(() -> {
+                if (thisBridge.bridgeCommunicate(bcp)) {
+                    logger.trace("setMainAndVanePosition() command {}sucessfully sent to {}",
+                            bcp.isCommunicationSuccessful() ? "" : "un", getThing().getUID());
+                }
+            });
+            return true;
+        }
+        return false;
     }
 }

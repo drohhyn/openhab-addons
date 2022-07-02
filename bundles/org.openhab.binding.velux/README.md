@@ -38,6 +38,10 @@ The binding will automatically discover Velux Bridges within the local network, 
 Once a Velux Bridge has been discovered, you will need to enter the `password` Configuration Parameter (see below) before the binding can communicate with it.
 And once the Velux Bridge is fully configured, the binding will automatically discover all its respective scenes and actuators (like windows and rollershutters), and place them in the Inbox.
 
+Note: When the KLF200 hub is started it provides a temporary private Wi-Fi Access Point for initial configuration.
+And if any device connects to this AP, it disables the normal LAN connection, thus preventing the binding from connecting.
+So make sure this AP is not permanently on (the default setting is that the AP will turn off after some time).
+
 ## Thing Configuration
 
 ### Thing Configuration for "bridge"
@@ -135,7 +139,7 @@ The supported Channels and their associated channel types are shown below.
 | downtime    | Number    | Time interval (sec) between last successful and most recent device interaction. |
 | doDetection | Switch    | Command to activate bridge detection mode.                                      |
 
-### Channels for "window" / "rollershutter" Things
+### Channels for "window" Things
 
 The supported Channels and their associated channel types are shown below.
 
@@ -153,6 +157,23 @@ The `position` Channel indicates the open/close state of the window (resp. rolle
 - If a window is opened manually, the display is `UNDEF`.
 - In case of errors (e.g. window jammed) the display is `UNDEF`.
 - If a Somfy actuator is commanded to its 'favorite' position via a Somfy remote control, under some circumstances the display is `UNDEF`. See also Rules below.
+
+### Channels for "rollershutter" Things
+
+The supported Channels and their associated channel types are shown below.
+
+| Channel      | Data Type     | Description                                     |
+|--------------|---------------|-------------------------------------------------|
+| position     | Rollershutter | Actual position of the window or device.        |
+| limitMinimum | Rollershutter | Minimum limit position of the window or device. |
+| limitMaximum | Rollershutter | Maximum limit position of the window or device. |
+| vanePosition | Dimmer        | Vane position of a Venetian blind.              |
+
+The `position`, `limitMinimum`, and `limitMaximum` are the same as described above for "window" Things.
+
+The `vanePosition` Channel only applies to Venetian blinds that have tiltable slats.
+It can only have a valid position value if the main `position` of the Thing is fully down.
+So, if `vanePosition` is commanded to a new value, this will automatically cause the main `position` to move to the fully down position.
 
 ### Channels for "actuator" Things
 
@@ -254,6 +275,43 @@ Frame label="Velux Windows" {
 ```
 
 See [velux.sitemap](doc/conf/sitemaps/velux.sitemap) for more examples.
+
+### Rule for simultaneously moving the main position and the vane position
+
+This applies to shades or shutters that have both a main position and a vane / tilt position.
+On such shades if one sends a vane position command followed shortly by a main position command (or vice versa) the second command will cause the first command to stop.
+This problem is most problematic when the two commands are issued simultaneously by a single rule.
+In order to solve this problem, there is a rule action to simultaneously set the main position and the vane position.
+
+_Warning: use this command carefully..._
+
+The action is a command method that is called from within a rule.
+The method is called with the following sysntax `setMainAndVanePosition(bridgeIndex, mainPercent, vanePercent)`.
+Where the meaning of the arguments is described in the table below.
+All arguments must be Strings that represent the respective numeric values.
+The method returns a `boolean` also as described in the table below.
+
+| Argument    | Type    | Example | Description                                                                             |
+|-------------|---------|---------|-----------------------------------------------------------------------------------------|
+| bridgeIndex | String  | "6"     | The actuator node index in the bridge. Must be a string for a valid configured node.    |
+| mainPercent | String  | "75"    | The target main position in percent. Must be a string between "0" and "100".            |
+| vanePercent | String  | "25"    | The target main position in percent. Must be a string between "0" and "100".            |
+| return      | Boolean | `true`  | Is `true` if the command was sent sucessfully or `false` if any arguments were invalid. |
+
+Example:
+
+```java
+rule "Set Main And Vane Position"
+when
+	...
+then
+    // note: 'velux:klf200:myhubname' shall be the thing name of your KLF hub
+	val veluxActions = getActions("velux", "velux:klf200:myhubname")
+	if (veluxActions !== null) {
+		val succeeded = veluxActions.setMainAndVanePosition("6", "75", "25")
+	}
+end
+```
 
 ### Rule for closing windows after a period of time
 
