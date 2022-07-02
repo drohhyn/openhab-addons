@@ -44,14 +44,14 @@ public interface IVeluxActions {
     /**
      * Action to simultaneously set the shade main position and the vane position.
      *
-     * @param bridgeIndex the node Id in the bridge as a string range "0".."200"
-     * @param mainPercent the desired main position as a string range "0".."100"
-     * @param vanePercent the desired vane position as a string range "0".."100"
+     * @param bridgeIndex the node Id in the bridge (valid node in range 1..200)
+     * @param mainPercent the desired main position (range 0..100)
+     * @param vanePercent the desired vane position (range 0..100)
      * @return true if the command was sent
      * @throws NumberFormatException if any of the arguments are not an integer
      * @throws IllegalArgumentException if any of the arguments are invalid
      * @throws IllegalStateException if anything else is wrong
      */
-    Boolean setMainAndVanePosition(String bridgeIndex, String mainPercent, String vanePercent)
+    Boolean setMainAndVanePosition(Integer bridgeIndex, Integer mainPercent, Integer vanePercent)
             throws NumberFormatException, IllegalArgumentException, IllegalStateException;
 }

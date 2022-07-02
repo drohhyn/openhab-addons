@@ -122,11 +122,11 @@ public class VeluxActions implements ThingActions, IVeluxActions {
     }
 
     @Override
-    @RuleAction(label = "set main and vane position", description = "issues a simultaneous command to move both the main position and the vane position of a shade")
-    public @ActionOutput(name = "executing", type = "java.lang.Boolean", label = "executing", description = "indicates the command was issued") Boolean setMainAndVanePosition(
-            @ActionInput(name = "bridgeIndex", required = true, label = "bridgeIndex", description = "actuator index in the bridge", type = "java.lang.String") String bridgeIndex,
-            @ActionInput(name = "mainPercent", required = true, label = "mainPercent", description = "position percentage to move to", type = "java.lang.String") String mainPercent,
-            @ActionInput(name = "vanePercent", required = true, label = "vanePercent", description = "vane position percentage to move to", type = "java.lang.String") String vanePercent)
+    @RuleAction(label = "Set main and vane position", description = "Issues a simultaneous command to move both the main position and the vane position of a shade")
+    public @ActionOutput(name = "executing", type = "java.lang.Boolean", label = "executing", description = "Indicates the command was issued") Boolean setMainAndVanePosition(
+            @ActionInput(name = "bridgeIndex", required = true, label = "bridgeIndex", description = "Actuator index in the bridge", type = "java.lang.Integer") Integer bridgeIndex,
+            @ActionInput(name = "mainPercent", required = true, label = "mainPercent", description = "Position percentage to move to", type = "java.lang.Integer") Integer mainPercent,
+            @ActionInput(name = "vanePercent", required = true, label = "vanePercent", description = "Vane position percentage to move to", type = "java.lang.Integer") Integer vanePercent)
             throws NumberFormatException, IllegalArgumentException, IllegalStateException {
         logger.trace("setMainAndVanePosition(bridgeIndex:{}, mainPercent:{}, vanePercent:{}) action called",
                 bridgeIndex, mainPercent, vanePercent);
@@ -134,7 +134,7 @@ public class VeluxActions implements ThingActions, IVeluxActions {
         if (bridgeHandler == null) {
             throw new IllegalStateException("Bridge instance is null");
         }
-        ProductBridgeIndex productBridgeIndex = new ProductBridgeIndex(Integer.parseInt(bridgeIndex));
+        ProductBridgeIndex productBridgeIndex = new ProductBridgeIndex(bridgeIndex);
         if (VeluxProduct.UNKNOWN.equals(bridgeHandler.existingProducts().get(productBridgeIndex))) {
             throw new IllegalArgumentException("Bridge does not contain nodeId");
         }
@@ -147,16 +147,17 @@ public class VeluxActions implements ThingActions, IVeluxActions {
      * Action to simultaneously set the shade main position and the vane position.
      *
      * @param actions ThingActions from the caller
-     * @param bridgeIndex the node Id in the bridge as a string range "0".."200"
-     * @param mainPercent the desired main position as a string range "0".."100"
-     * @param vanePercent the desired vane position as a string range "0".."100"
+     * @param bridgeIndex the node Id in the bridge (valid node in range 1..200)
+     * @param mainPercent the desired main position (range 0..100)
+     * @param vanePercent the desired vane position (range 0..100)
      * @return true if the command was sent
      * @throws NumberFormatException if any of the arguments are not an integer
      * @throws IllegalArgumentException if any of the arguments are invalid
      * @throws IllegalStateException if anything else is wrong
      */
-    public static Boolean setMainAndVanePosition(@Nullable ThingActions actions, String bridgeIndex, String mainPercent,
-            String vanePercent) throws NumberFormatException, IllegalArgumentException, IllegalStateException {
+    public static Boolean setMainAndVanePosition(@Nullable ThingActions actions, Integer bridgeIndex,
+            Integer mainPercent, Integer vanePercent)
+            throws NumberFormatException, IllegalArgumentException, IllegalStateException {
         if (!(actions instanceof IVeluxActions)) {
             throw new IllegalArgumentException("Unsupported action");
         }

@@ -286,16 +286,15 @@ In order to solve this problem, there is a rule action to simultaneously set the
 _Warning: use this command carefully..._
 
 The action is a command method that is called from within a rule.
-The method is called with the following sysntax `setMainAndVanePosition(bridgeIndex, mainPercent, vanePercent)`.
-Where the meaning of the arguments is described in the table below.
-All arguments must be Strings that represent the respective numeric values.
-The method returns a `boolean` also as described in the table below.
+The method is called with the following syntax `setMainAndVanePosition(bridgeIndex, mainPercent, vanePercent)`.
+The meaning of the arguments is described in the table below.
+The method returns a `Boolean` whose meaning is also described in the table below.
 
 | Argument    | Type    | Example | Description                                                                             |
 |-------------|---------|---------|-----------------------------------------------------------------------------------------|
-| bridgeIndex | String  | "6"     | The actuator node index in the bridge. Must be a string for a valid configured node.    |
-| mainPercent | String  | "75"    | The target main position in percent. Must be a string between "0" and "100".            |
-| vanePercent | String  | "25"    | The target main position in percent. Must be a string between "0" and "100".            |
+| bridgeIndex | Integer | 6       | The actuator node index in the bridge. Must be a valid configured node.                 |
+| mainPercent | Integer | 75      | The target main position in percent. Must be between 0 and 100.                         |
+| vanePercent | Integer | 25      | The target main position in percent. Must be between 0 and 100.                         |
 | return      | Boolean | `true`  | Is `true` if the command was sent sucessfully or `false` if any arguments were invalid. |
 
 Example:
@@ -308,7 +307,7 @@ then
     // note: 'velux:klf200:myhubname' shall be the thing name of your KLF hub
 	val veluxActions = getActions("velux", "velux:klf200:myhubname")
 	if (veluxActions !== null) {
-		val succeeded = veluxActions.setMainAndVanePosition("6", "75", "25")
+		val succeeded = veluxActions.setMainAndVanePosition(6, 75, 25)
 	}
 end
 ```
