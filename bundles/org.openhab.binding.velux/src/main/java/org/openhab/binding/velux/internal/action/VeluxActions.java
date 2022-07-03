@@ -15,7 +15,6 @@ package org.openhab.binding.velux.internal.action;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.velux.internal.handler.VeluxBridgeHandler;
-import org.openhab.binding.velux.internal.things.VeluxProduct;
 import org.openhab.binding.velux.internal.things.VeluxProduct.ProductBridgeIndex;
 import org.openhab.core.automation.annotation.ActionInput;
 import org.openhab.core.automation.annotation.ActionOutput;
@@ -122,32 +121,33 @@ public class VeluxActions implements ThingActions, IVeluxActions {
     }
 
     @Override
-    @RuleAction(label = "Set main and vane position", description = "Issues a simultaneous command to move both the main position and the vane position of a shade")
-    public @ActionOutput(name = "executing", type = "java.lang.Boolean", label = "executing", description = "Indicates the command was issued") Boolean setMainAndVanePosition(
-            @ActionInput(name = "bridgeIndex", required = true, label = "bridgeIndex", description = "Actuator index in the bridge", type = "java.lang.Integer") Integer bridgeIndex,
+    @RuleAction(label = "Move main and vane position simultaneoulsy", description = "Issues a simultaneous command to move both the main position and the vane position of a shade")
+    public @ActionOutput(name = "executing", type = "java.lang.Boolean", label = "executing", description = "Indicates the command was issued") Boolean moveMainAndVane(
+            @ActionInput(name = "thingName", required = true, label = "thingName", description = "UID of the actuator thing to be moved", type = "java.lang.String") String thingName,
             @ActionInput(name = "mainPercent", required = true, label = "mainPercent", description = "Position percentage to move to", type = "java.lang.Integer") Integer mainPercent,
             @ActionInput(name = "vanePercent", required = true, label = "vanePercent", description = "Vane position percentage to move to", type = "java.lang.Integer") Integer vanePercent)
             throws NumberFormatException, IllegalArgumentException, IllegalStateException {
-        logger.trace("setMainAndVanePosition(bridgeIndex:{}, mainPercent:{}, vanePercent:{}) action called",
-                bridgeIndex, mainPercent, vanePercent);
+        logger.trace("moveMainAndVane(thingName:{}, mainPercent:{}, vanePercent:{}) action called", thingName,
+                mainPercent, vanePercent);
         VeluxBridgeHandler bridgeHandler = this.bridgeHandler;
         if (bridgeHandler == null) {
             throw new IllegalStateException("Bridge instance is null");
         }
-        ProductBridgeIndex productBridgeIndex = new ProductBridgeIndex(bridgeIndex);
-        if (VeluxProduct.UNKNOWN.equals(bridgeHandler.existingProducts().get(productBridgeIndex))) {
-            throw new IllegalArgumentException("Bridge does not contain nodeId");
+        ProductBridgeIndex productBridgeIndex = bridgeHandler.getProductBridgeIndex(thingName);
+        if (ProductBridgeIndex.UNKNOWN.equals(productBridgeIndex)) {
+            throw new IllegalArgumentException("Bridge does not contain a thing with the given name");
         }
         PercentType mainPercentType = new PercentType(mainPercent);
         PercentType vanePercenType = new PercentType(vanePercent);
-        return bridgeHandler.setMainAndVanePosition(productBridgeIndex, mainPercentType, vanePercenType);
+        return bridgeHandler.moveMainAndVane(productBridgeIndex, mainPercentType, vanePercenType);
     }
 
     /**
-     * Action to simultaneously set the shade main position and the vane position.
+     * Action to simultaneously move the shade main position and vane positions.
+     *
      *
      * @param actions ThingActions from the caller
-     * @param bridgeIndex the node Id in the bridge (valid node in range 1..200)
+     * @param thingName the name of the thing to be moved (e.g. 'velux:rollershutter:hubid:thingid')
      * @param mainPercent the desired main position (range 0..100)
      * @param vanePercent the desired vane position (range 0..100)
      * @return true if the command was sent
@@ -155,12 +155,11 @@ public class VeluxActions implements ThingActions, IVeluxActions {
      * @throws IllegalArgumentException if any of the arguments are invalid
      * @throws IllegalStateException if anything else is wrong
      */
-    public static Boolean setMainAndVanePosition(@Nullable ThingActions actions, Integer bridgeIndex,
-            Integer mainPercent, Integer vanePercent)
-            throws NumberFormatException, IllegalArgumentException, IllegalStateException {
+    public static Boolean moveMainAndVane(@Nullable ThingActions actions, String thingName, Integer mainPercent,
+            Integer vanePercent) throws NumberFormatException, IllegalArgumentException, IllegalStateException {
         if (!(actions instanceof IVeluxActions)) {
             throw new IllegalArgumentException("Unsupported action");
         }
-        return ((IVeluxActions) actions).setMainAndVanePosition(bridgeIndex, mainPercent, vanePercent);
+        return ((IVeluxActions) actions).moveMainAndVane(thingName, mainPercent, vanePercent);
     }
 }

@@ -151,6 +151,7 @@ public class VeluxBridgeHandler extends ExtendedBaseBridgeHandler implements Vel
      * Mapping from ChannelUID to class Thing2VeluxActuator, which return Velux device information, probably cached.
      */
     Map<ChannelUID, Thing2VeluxActuator> channel2VeluxActuator = new ConcurrentHashMap<>();
+    Map<String, Thing2VeluxActuator> thingName2VeluxActuator = new ConcurrentHashMap<>();
 
     /**
      * Information retrieved by {@link VeluxBinding#VeluxBinding}.
@@ -392,7 +393,9 @@ public class VeluxBridgeHandler extends ExtendedBaseBridgeHandler implements Vel
     @Override
     public void channelLinked(ChannelUID channelUID) {
         if (thing.getStatus() == ThingStatus.ONLINE) {
-            channel2VeluxActuator.put(channelUID, new Thing2VeluxActuator(this, channelUID));
+            Thing2VeluxActuator actuator = new Thing2VeluxActuator(this, channelUID);
+            channel2VeluxActuator.put(channelUID, actuator);
+            thingName2VeluxActuator.put(channelUID.getThingUID().toString(), actuator);
             logger.trace("channelLinked({}) refreshing channel value with help of handleCommand as Thing is online.",
                     channelUID.getAsString());
             handleCommand(channelUID, RefreshType.REFRESH);
@@ -905,15 +908,15 @@ public class VeluxBridgeHandler extends ExtendedBaseBridgeHandler implements Vel
     }
 
     /**
-     * Exported method (called by an OpenHAB Rules Action) to simultaneously set the shade main position and the vane
+     * Exported method (called by an OpenHAB Rules Action) to simultaneously move the shade main position and the vane
      * position.
      *
-     * @param productBridgeIndex the node index in the bridge
-     * @param mainPercentType the desired main position
-     * @param vanePercentType the desired vane position
-     * @return true if the command could be issued
+     * @param productBridgeIndex the node index in the bridge.
+     * @param mainPercentType the desired main position.
+     * @param vanePercentType the desired vane position.
+     * @return true if the command could be issued.
      */
-    public Boolean setMainAndVanePosition(ProductBridgeIndex productBridgeIndex, PercentType mainPercentType,
+    public Boolean moveMainAndVane(ProductBridgeIndex productBridgeIndex, PercentType mainPercentType,
             PercentType vanePercentType) {
         logger.trace("setMainAndVanePosition() called on {}", getThing().getUID());
         RunProductCommand bcp = thisBridge.bridgeAPI().runProductCommand();
@@ -936,5 +939,16 @@ public class VeluxBridgeHandler extends ExtendedBaseBridgeHandler implements Vel
             return true;
         }
         return false;
+    }
+
+    /**
+     * Get the bridge product index for a given thing name.
+     *
+     * @param thingName the thing name
+     * @return the the bridge product index or ProductBridgeIndex.UNKNOWN if not found.
+     */
+    public ProductBridgeIndex getProductBridgeIndex(String thingName) {
+        Thing2VeluxActuator actuator = thingName2VeluxActuator.get(thingName);
+        return actuator != null ? actuator.getProductBridgeIndex() : ProductBridgeIndex.UNKNOWN;
     }
 }
