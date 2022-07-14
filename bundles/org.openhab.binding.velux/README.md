@@ -478,7 +478,7 @@ Therefore, on the one hand you can use the Web Frontend for manual control and o
 
 ### Login sequence fails and Connection refused
 
-If you get this error and have checked for the right password (the one below SSID on the device's back) in the configuration twice, it might just be an error in the communication due to the limitation about WLAN and LAN above. Just disable the bridge in the UI, remove the LAN cable, power cycle your KLF200 and wait for 10 minutes. With the default configuration, this should turn off the Access Point '''VELUX_KLF_XXX'''. Now plug in the LAN cable and enable the bridge again. All things should be back to normal.
+If you get this error and have checked for the right password (the one below SSID on the device's back) in the configuration twice, it might just be an error in the communication due to the limitation about WLAN and LAN above. Just disable the bridge in the UI, remove the LAN cable, power cycle your KLF200 and wait for 10 minutes. With the default configuration, this should turn off the Access Point ```VELUX_KLF_XXX```. Now plug in the LAN cable and enable the bridge again. All things should be back to normal.
 
 ### Unknown Velux devices
 
